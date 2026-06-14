@@ -1,0 +1,26 @@
+poll-interval-ms: 5000
+redaction:
+  enabled: true
+  mode: balanced
+rules:
+  - name: ai-window-title
+    enabled: true
+    trigger:
+      event: window-changed
+      stable-ms: 30000
+    wait-ms: 120000
+    input:
+      panes: current-window
+      capture-head: 40
+      capture-tail: 120
+      include-process-tree: true
+      include-cwd: true
+    prompt: |
+      Generate a short 1-3 word tmux window title from the panes below.
+      Prefer the active project/task. Output only the title.
+    model:
+      provider: open-ai-compatible
+      endpoint-env: OPENAI_BASE_URL
+      api-key-env: OPENAI_API_KEY
+      model: gpt-5.4-mini
+    target: window-name
