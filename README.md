@@ -112,8 +112,8 @@ Hooks:
 - `after-new-window`
 - `window-layout-changed`
 
-The first implementation keeps hooks as `run-once` calls for testability. A
-daemon mode should own real debouncing and long-running event state.
+Hooks call `run-once --honor-wait` in the background. Manual `prefix R` runs
+immediately so you can force a refresh without waiting two minutes.
 
 ## Tests
 

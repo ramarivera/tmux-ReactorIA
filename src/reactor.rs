@@ -5,6 +5,7 @@ use crate::{
     redaction::Redactor,
     tmux::Tmux,
 };
+use std::time::Duration;
 use tracing::info;
 
 pub async fn run_once(
@@ -13,9 +14,18 @@ pub async fn run_once(
     process: &dyn ProcessInspector,
     ai: &dyn AiProvider,
     target: &str,
+    honor_wait: bool,
 ) -> anyhow::Result<()> {
     let redactor = Redactor::new(&config.redaction)?;
     for rule in config.rules.iter().filter(|rule| rule.enabled) {
+        if honor_wait && rule.wait_ms > 0 {
+            info!(
+                rule = %rule.name,
+                wait_ms = rule.wait_ms,
+                "waiting before rule execution"
+            );
+            tokio::time::sleep(Duration::from_millis(rule.wait_ms)).await;
+        }
         let prompt = build_rule_prompt(rule, tmux, process, &redactor, target)?;
         crate::lazy_trace!(|| format!("prompt for rule {}:\n{}", rule.name, prompt));
         let raw = ai.complete(&rule.model, &prompt).await?;
@@ -184,7 +194,7 @@ mod tests {
             writes: Mutex::new(vec![]),
         };
         let config = ReactorConfig::default();
-        run_once(&config, &tmux, &FakeProcess, &FakeAi, "@1")
+        run_once(&config, &tmux, &FakeProcess, &FakeAi, "@1", false)
             .await
             .unwrap();
         assert_eq!(tmux.writes.lock().unwrap()[0], "Toolbox Tmux");

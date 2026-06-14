@@ -30,6 +30,9 @@ enum Command {
     RunOnce {
         #[arg(long, default_value = "#{window_id}")]
         target: String,
+        /// Sleep for each rule's configured wait-ms before collecting inputs.
+        #[arg(long)]
+        honor_wait: bool,
     },
     /// Print the deterministic label for a pane/process tuple.
     Label {
@@ -50,7 +53,7 @@ async fn main() -> anyhow::Result<()> {
     logging::init(cli.json_logs, &cli.log);
 
     match cli.command {
-        Command::RunOnce { target } => {
+        Command::RunOnce { target, honor_wait } => {
             let config = match cli.config {
                 Some(path) => ReactorConfig::from_path(path)?,
                 None => ReactorConfig::default(),
@@ -61,6 +64,7 @@ async fn main() -> anyhow::Result<()> {
                 &PsProcessInspector,
                 &RigAiProvider,
                 &target,
+                honor_wait,
             )
             .await?;
         }
