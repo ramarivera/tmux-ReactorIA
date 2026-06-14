@@ -49,5 +49,5 @@ jobs:
 
       - name: Installer smoke
         run: |
-          PATH="$HOME/.cargo/bin:$PATH" TMUX=1 ./scripts/install-binary.sh
+          PATH="$HOME/.cargo/bin:$PATH" TMUX=1 bash ./scripts/install-binary.sh
           test -f "${XDG_STATE_HOME:-$HOME/.local/state}/tmux-reactoria/install-state.env"
